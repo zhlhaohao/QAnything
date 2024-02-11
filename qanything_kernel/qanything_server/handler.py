@@ -72,7 +72,7 @@ async def upload_weblink(req: request):
         msg = "success，后台正在飞速上传文件，请耐心等待"
     return sanic_json({"code": 200, "msg": msg, "data": data})
 
-
+# PPP# 上传文件
 async def upload_files(req: request):
     local_doc_qa: LocalDocQA = req.app.ctx.local_doc_qa
     user_id = safe_get(req, 'user_id')

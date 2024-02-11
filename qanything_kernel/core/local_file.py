@@ -61,7 +61,7 @@ class LocalFile:
             loader = MyRecursiveUrlLoader(url=self.url)
             textsplitter = ChineseTextSplitter(pdf=False, sentence_size=sentence_size)
             docs = loader.load_and_split(text_splitter=textsplitter)
-        elif self.file_path.lower().endswith(".md"):
+        elif self.file_path.lower().endswith(".md"):  # PPP## 读md文档
             loader = UnstructuredFileLoader(self.file_path, mode="elements")
             docs = loader.load()
         elif self.file_path.lower().endswith(".txt"):

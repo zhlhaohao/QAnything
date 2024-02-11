@@ -143,7 +143,7 @@ echo "qanything后端服务已就绪! (4/8)"
 
 env_file="/workspace/qanything_local/front_end/.env.production"
 user_file="/workspace/qanything_local/user.config"
-user_ip=$(cat "$user_file")
+user_ip="localhost"  # $(cat "$user_file")
 # 读取env_file的第一行
 current_host=$(grep VITE_APP_API_HOST "$env_file")
 user_host="VITE_APP_API_HOST=http://$user_ip:8777"

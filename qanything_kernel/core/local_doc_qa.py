@@ -76,7 +76,7 @@ class LocalDocQA:
 
         for local_file in local_files:
             start = time.time()
-            try:
+            try:  # PPP## 分解文档
                 local_file.split_file_to_docs(self.get_ocr_result)
                 content_length = sum([len(doc.page_content) for doc in local_file.docs])
             except Exception as e:

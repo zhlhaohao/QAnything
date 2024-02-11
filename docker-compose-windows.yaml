@@ -69,8 +69,9 @@ services:
     container_name: mysql-container-local
     privileged: true
     image: mysql
-    #     ports:
-    #       - "3306:3306"
+    # ports:
+    #   - "3306:3306"
+
     environment:
       - MYSQL_ROOT_PASSWORD=123456
     volumes:
@@ -80,16 +81,16 @@ services:
     container_name: qanything-container-local
     image: freeren/qanything-win:v1.1.1
     # runtime: nvidia
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: "all"
-              capabilities: ["gpu"]
-    command: sh -c 'if [ "${LLM_API}" = "local" ]; then /workspace/qanything_local/scripts/run_for_local_option.sh -c $LLM_API -i $DEVICE_ID -b $RUNTIME_BACKEND -m $MODEL_NAME -t $CONV_TEMPLATE -p $TP -r $GPU_MEM_UTILI; else /workspace/qanything_local/scripts/run_for_cloud_option.sh -c $LLM_API -i $DEVICE_ID -b $RUNTIME_BACKEND; fi; while true; do sleep 5; done'
+    # deploy:
+      # resources:
+        # reservations:
+        #   devices:
+        #     - driver: nvidia
+        #       count: "all"
+        #       capabilities: ["gpu"]
+    command: sh -c 'if [ "${LLM_API}" = "local" ]; then /workspace/qanything_local/scripts/run_for_local_option.sh -c $LLM_API -i $DEVICE_ID -b $RUNTIME_BACKEND -m $MODEL_NAME -t $CONV_TEMPLATE -p $TP -r $GPU_MEM_UTILI; else /workspace/qanything_local/scripts/run_for_cloud_option.sh -c $LLM_API -b $RUNTIME_BACKEND; fi; while true; do sleep 5; done'
     privileged: true
-    shm_size: '8gb'
+    # shm_size: '8gb'
     volumes:
       - ${DOCKER_VOLUME_DIRECTORY:-.}/models:/model_repos/QAEnsemble
       - ${DOCKER_VOLUME_DIRECTORY:-.}/assets/custom_models:/model_repos/CustomLLM

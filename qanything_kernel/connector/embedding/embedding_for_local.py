@@ -12,7 +12,7 @@ embedding_client = EmbeddingClient(
     resp_wait_s=120,
     tokenizer_path='qanything_kernel/connector/embedding/embedding_model_0630')
 
-
+# PPP# 文本嵌入代码
 class YouDaoLocalEmbeddings:
     def __init__(self):
         pass

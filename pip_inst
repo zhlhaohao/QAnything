@@ -7,3 +7,26 @@ python3 -m pip install $PIP_OPTIONS --upgrade pip && pip install $PIP_OPTIONS --
     pip install $PIP_OPTIONS --no-cache-dir ipython==8.17.2 sanic==23.6.0 pymilvus==2.3.4 langchain==0.0.351 paddleocr==2.7.0.3 paddlepaddle-gpu==2.5.2 nltk==3.8.1 pypinyin==0.50.0 mysql-connector-python==8.2.0 sanic_ext==23.6.0 && \
     pip install $PIP_OPTIONS --no-cache-dir onnxruntime-gpu==1.16.3 openai==1.6.1 && \
     pip install $PIP_OPTIONS --no-cache-dir unstructured==0.11.6 unstructured[pptx]==0.11.6 unstructured[md]==0.11.6
+
+
+
+apt-get install -y --no-install-recommends \
+        autoconf \
+        autogen \
+        clangd \
+        git-lfs \
+        libb64-dev \
+        libz-dev \
+        locales-all \
+        mosh \
+        rapidjson-dev \
+        zstd \
+        libgl1-mesa-glx \
+        libmagic-dev \
+        poppler-utils \
+        tesseract-ocr \
+        libxml2-dev \
+        libxslt1-dev && \
+    apt-get clean && \
+    rm -rf /usr/local/cuda-11.8 && \
+    rm -rf /var/lib/apt/lists/*    

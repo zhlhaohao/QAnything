@@ -9,9 +9,6 @@ services:
       - ETCD_AUTO_COMPACTION_RETENTION=1000
       - ETCD_QUOTA_BACKEND_BYTES=4294967296
       - ETCD_SNAPSHOT_COUNT=50000
-    ports:
-      - "2379:2379"
-      - "2380:2380"      
     volumes:
       - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/etcd:/etcd
     command: etcd -advertise-client-urls=http://127.0.0.1:2379 -listen-client-urls http://0.0.0.0:2379 --data-dir /etcd
@@ -27,8 +24,9 @@ services:
     environment:
       MINIO_ACCESS_KEY: minioadmin
       MINIO_SECRET_KEY: minioadmin
-    ports:
-      - "9000:9000"
+    # ports:
+    #   - "9001:9001"
+    #       - "9000:9000"
     volumes:
       - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/minio:/minio_data
     command: minio server /minio_data --console-address ":9001"
@@ -61,8 +59,8 @@ services:
       timeout: 20s
       retries: 3
     ports:
-      - "19530:19530"
-      - "9091:9091"
+          - "19530:19530"
+          - "9091:9091"
     depends_on:
       - "etcd"
       - "minio"
@@ -90,8 +88,7 @@ services:
         #     - driver: nvidia
         #       count: "all"
         #       capabilities: ["gpu"]
-    # command: sh -c 'if [ "${LLM_API}" = "local" ]; then /workspace/qanything_local/scripts/run_for_local_option.sh -c $LLM_API -i $DEVICE_ID -b $RUNTIME_BACKEND -m $MODEL_NAME -t $CONV_TEMPLATE -p $TP -r $GPU_MEM_UTILI; elif [ "${LLM_API}" = "cloud" ]; then /workspace/qanything_local/scripts/run_for_cloud_option.sh -c $LLM_API -b $RUNTIME_BACKEND; else /workspace/qanything_local/scripts/run_for_cloud_dev_option.sh -c $LLM_API -b $RUNTIME_BACKEND; fi; while true; do sleep 5; done'
-    command: sh -c 'if [ "${LLM_API}" = "local" ]; then /workspace/qanything_local/scripts/run_for_local_option.sh -c $LLM_API -i $DEVICE_ID -b $RUNTIME_BACKEND -m $MODEL_NAME -t $CONV_TEMPLATE -p $TP -r $GPU_MEM_UTILI; else /workspace/qanything_local/scripts/run_for_cloud_dev_option.sh -c $LLM_API -b $RUNTIME_BACKEND; fi; while true; do sleep 5; done'
+    command: sh -c 'if [ "${LLM_API}" = "local" ]; then /workspace/qanything_local/scripts/run_for_local_option.sh -c $LLM_API -i $DEVICE_ID -b $RUNTIME_BACKEND -m $MODEL_NAME -t $CONV_TEMPLATE -p $TP -r $GPU_MEM_UTILI; else /workspace/qanything_local/scripts/run_for_cloud_option.sh -c $LLM_API -b $RUNTIME_BACKEND; fi; while true; do sleep 5; done'
     privileged: true
     # shm_size: '8gb'
     volumes:
@@ -99,10 +96,8 @@ services:
       - ${DOCKER_VOLUME_DIRECTORY:-.}/assets/custom_models:/model_repos/CustomLLM
       - ${DOCKER_VOLUME_DIRECTORY:-.}/:/workspace/qanything_local/
     ports:
-      - "8776:8776"
-      - "8010:8010"
-      - "9001:9001"      
-      - "9002:9002"      
+      - "5052:5052"
+      - "8777:8777"
     environment:
       - NCCL_LAUNCH_MODE=PARALLEL
       - GPUID1=${GPUID1:-0}

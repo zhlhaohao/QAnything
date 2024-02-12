@@ -69,20 +69,20 @@ print_important_notice() {
     sleep 5
 }
 
-# # 获取最新的远程仓库信息
-# git fetch origin master
+# 获取最新的远程仓库信息
+git fetch origin master
 
-# # 获取本地master分支的最新提交
-# LOCAL=$(git rev-parse master)
-# # 获取远程master分支的最新提交
-# REMOTE=$(git rev-parse origin/master)
+# 获取本地master分支的最新提交
+LOCAL=$(git rev-parse master)
+# 获取远程master分支的最新提交
+REMOTE=$(git rev-parse origin/master)
 
-# if [ $LOCAL != $REMOTE ]; then
-#     # 本地分支与远程分支不一致，需要更新
-#     print_important_notice
-# else
-#     echo -e "${GREEN}当前master分支已是最新，无需更新。${NC}"
-# fi
+if [ $LOCAL != $REMOTE ]; then
+    # 本地分支与远程分支不一致，需要更新
+    print_important_notice
+else
+    echo -e "${GREEN}当前master分支已是最新，无需更新。${NC}"
+fi
 
 
 llm_api="local"

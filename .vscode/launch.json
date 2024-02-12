@@ -1,0 +1,33 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python Debugger: Current File",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${file}",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "run api",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/qanything_kernel/qanything_server/sanic_api.py",
+			"args": [
+        "--mode",
+        "online"
+			],
+      "env": {
+        "LLM_API_SERVE_PORT":"7802",
+        "RERANK_PORT":"9001",
+        "EMBED_PORT":"9001"
+			},      
+      "console": "integratedTerminal",
+			"cwd": "${workspaceFolder}",
+      "justMyCode": false
+    },    
+  ]
+}

@@ -1,6 +1,7 @@
 .venv
 .idea
 venv
+.env
 __pycache__
 QANY_DB
 qanything_logs

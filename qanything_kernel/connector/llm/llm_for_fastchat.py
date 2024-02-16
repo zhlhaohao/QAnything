@@ -16,6 +16,7 @@ load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
 
+# PPP# fastchat的本地LLM问答接口（backend必须是vllm/hf）,模型文件放在 assets/custom_models目录下, url = http://LOCAL_LLM_SERVICE_URL:LLM_API_SERVE_PORT
 class OpenAICustomLLM(BaseAnswer, ABC):
     model: str = LOCAL_LLM_MODEL_NAME
     token_window: int = LOCAL_LLM_MAX_LENGTH

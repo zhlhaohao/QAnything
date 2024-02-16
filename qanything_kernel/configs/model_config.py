@@ -83,7 +83,7 @@ print("llm_api_serve_port:", llm_api_serve_port)
 print("rerank_port:", rerank_port)
 print("embed_port:", embed_port)
 
-
+# fastchat的LLM问答接口的url,使用的是OpenAI的API,在这里可以改成自己的ip地址以支持在线查询 
 LOCAL_LLM_SERVICE_URL = f"localhost:{llm_api_serve_port}"
 LOCAL_LLM_MODEL_NAME = llm_api_serve_model
 LOCAL_LLM_MAX_LENGTH = 4096

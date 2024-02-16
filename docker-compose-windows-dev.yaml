@@ -82,7 +82,8 @@ services:
   qanything_local:
     container_name: qanything-container-local
     image: freeren/qanything-win:v1.1.1
-    # runtime: nvidia
+    # 注释它是因为我没有GPU，如果不注释容器无法启动
+    # runtime: nvidia 
     # deploy:
       # resources:
         # reservations:
@@ -90,7 +91,6 @@ services:
         #     - driver: nvidia
         #       count: "all"
         #       capabilities: ["gpu"]
-    # command: sh -c 'if [ "${LLM_API}" = "local" ]; then /workspace/qanything_local/scripts/run_for_local_option.sh -c $LLM_API -i $DEVICE_ID -b $RUNTIME_BACKEND -m $MODEL_NAME -t $CONV_TEMPLATE -p $TP -r $GPU_MEM_UTILI; elif [ "${LLM_API}" = "cloud" ]; then /workspace/qanything_local/scripts/run_for_cloud_option.sh -c $LLM_API -b $RUNTIME_BACKEND; else /workspace/qanything_local/scripts/run_for_cloud_dev_option.sh -c $LLM_API -b $RUNTIME_BACKEND; fi; while true; do sleep 5; done'
     command: sh -c 'if [ "${LLM_API}" = "local" ]; then /workspace/qanything_local/scripts/run_for_local_option.sh -c $LLM_API -i $DEVICE_ID -b $RUNTIME_BACKEND -m $MODEL_NAME -t $CONV_TEMPLATE -p $TP -r $GPU_MEM_UTILI; else /workspace/qanything_local/scripts/run_for_cloud_dev_option.sh -c $LLM_API -b $RUNTIME_BACKEND; fi; while true; do sleep 5; done'
     privileged: true
     # shm_size: '8gb'

@@ -9,6 +9,11 @@ import json
 import requests
 import logging
 sys.path.append("../../../")
+
+from pathlib import Path
+root_path = Path(__file__).parent.parent.parent.parent
+sys.path.append(str(root_path))
+
 from qanything_kernel.connector.llm.base import (BaseAnswer, AnswerResult)
 
 load_dotenv()
@@ -130,18 +135,16 @@ class OpenAILLM(BaseAnswer, ABC):
             num_tokens += len(encoding.encode(doc.page_content, disallowed_special=()))
         return num_tokens
 
+    # 定义方法_call，参数包括：prompt（用户输入），history（对话历史记录列表），streaming（是否启用流式处理，默认为False）
     def _call(self, prompt: str, history: List[List[str]], streaming: bool=False) -> str:
-        messages = []
-        for pair in history:
-            question, answer = pair
-            messages.append({"role": "user", "content": question})
-            messages.append({"role": "assistant", "content": answer})
-        messages.append({"role": "user", "content": prompt})
+        # 将历史记录转换为OpenAI API所需的消息格式并添加当前的prompt
+        messages = [{"role": "user", "content": q} for q, a in history] + [{"role": "user", "content": prompt}]
         logging.info(messages)
 
         try:
-
+            # 如果启用流式处理
             if streaming:
+                # 调用OpenAI API进行实时对话，并通过for循环逐个获取事件响应
                 response = self.client.chat.completions.create(
                     model=self.model,
                     messages=messages,
@@ -149,21 +152,25 @@ class OpenAILLM(BaseAnswer, ABC):
                     max_tokens=self.max_token,
                     temperature=self.temperature,
                     top_p=self.top_p,
-                    stop=[self.stop_words] if self.stop_words is not None else None,
+                    stop=self.stop_words if self.stop_words is not None else None,
                 )
                 logging.info(f"OPENAI RES: {response}")
                 for event in response:
+                    # 将非字典类型的event对象转为model_dump形式
                     if not isinstance(event, dict):
                         event = event.model_dump()
 
-                    if isinstance(event['choices'], List) and len(event['choices']) > 0 :
+                    # 如果choices列表存在且不为空，则取出第一个回复内容
+                    if isinstance(event['choices'], list) and len(event['choices']) > 0:
                         event_text = event["choices"][0]['delta']['content']
+                        # 若回复内容为非空字符串，则生成并发送更新数据
                         if isinstance(event_text, str) and event_text != "":
-                            # logging.info(f"[debug] event_text = [{event_text}]")
                             delta = {'answer': event_text}
                             yield "data: " + json.dumps(delta, ensure_ascii=False)
 
+            # 如果未启用流式处理
             else:
+                # 调用OpenAI API一次性获取完整对话结果
                 response = self.client.chat.completions.create(
                     model=self.model,
                     messages=messages,
@@ -171,51 +178,83 @@ class OpenAILLM(BaseAnswer, ABC):
                     max_tokens=self.max_token,
                     temperature=self.temperature,
                     top_p=self.top_p,
-                    stop=[self.stop_words] if self.stop_words is not None else None,
+                    stop=self.stop_words if self.stop_words is not None else None,
                 )
-                
-                # logging.info(f"[debug] response.choices = [{response.choices}]")
+
+                # 获取并发送API返回的第一个回复内容
                 event_text = response.choices[0].message.content if response.choices else ""
                 delta = {'answer': event_text}
                 yield "data: " + json.dumps(delta, ensure_ascii=False)
 
         except Exception as e:
+            # 处理调用OpenAI API时出现的异常，并将错误信息作为回复内容发送
             logging.info(f"Error calling OpenAI API: {e}")
             delta = {'answer': f"{e}"}
             yield "data: " + json.dumps(delta, ensure_ascii=False)
 
         finally:
-            # logging.info("[debug] try-finally")
+            # 在无论是否出现异常的情况下，最后都发送一个标记对话结束的信号
+            # 这里使用 "[DONE]" 表示对话或请求处理完毕
             yield f"data: [DONE]\n\n"
 
-    def generatorAnswer(self, prompt: str,
-                        history: List[List[str]] = [],
-                        streaming: bool = False) -> AnswerResult:
+    """ 
+    定义方法generatorAnswer，该方法接收prompt（用户输入），history（对话历史记录，默认为空列表），streaming（是否启用流式处理，默认为False）作为参数，并返回一个AnswerResult对象迭代器
 
+    首先处理传入的 `history` 参数以确保其是一个非空的对话历史记录列表。接着，调用 `_call` 方法与 OpenAI 的聊天模型接口交互，根据是否启用流式处理来获取用户输入 `prompt` 对应的回答。
+
+    然后遍历收到的所有回复，并将非结束标记的回复片段拼接成完整的答案。每次循环结束后，更新对话历史记录，并创建一个新的 `AnswerResult` 对象，其中包含了对话历史记录、本次LLM输出的原始回复以及用户提供的prompt。
+
+    最后，使用 `yield` 关键字逐次生成并返回这些 `AnswerResult` 对象，形成一个迭代器，这样可以支持连续对话的场景下多次生成不同阶段的答案。
+    """
+    def generatorAnswer(self, prompt: str,
+                            history: List[List[str]] = [],
+                            streaming: bool = False) -> AnswerResult:
+
+        # 如果history为None或长度为0，则初始化为一个空对话记录子列表
         if history is None or len(history) == 0:
             history = [[]]
+            
+        # 输出调试信息：当前设置的历史记录最大长度、prompt内容、prompt的令牌数以及是否启用流式处理
         logging.info(f"history_len: {self.history_len}")
         logging.info(f"prompt: {prompt}")
         logging.info(f"prompt tokens: {self.num_tokens_from_messages([{'content': prompt}])}")
         logging.info(f"streaming: {streaming}")
-                
+
+        # 调用内部私有方法_call与OpenAI API进行交互，并获取回复数据流
         response = self._call(prompt, history[:-1], streaming)
+
+        # 初始化完整回答字符串变量
         complete_answer = ""
+
+        # 遍历从API得到的每一条响应文本
         for response_text in response:
 
+            # 若响应文本不为空
             if response_text:
+                # 去掉"data: "前缀并解析JSON内容
                 chunk_str = response_text[6:]
                 if not chunk_str.startswith("[DONE]"):
                     chunk_js = json.loads(chunk_str)
+                    # 将当前回复片段添加到完整回答中
                     complete_answer += chunk_js["answer"]
-                    
-            history[-1] = [prompt, complete_answer]
-            answer_result = AnswerResult()
-            answer_result.history = history
-            answer_result.llm_output = {"answer": response_text}
-            answer_result.prompt = prompt
-            yield answer_result
 
+            # 更新当前对话回合的历史记录，将prompt和完整的回复加入到最新的对话子列表中
+            history[-1] = [prompt, complete_answer]
+
+            # 创建AnswerResult对象
+            answer_result = AnswerResult()
+
+            # 设置AnswerResult对象中的历史记录属性
+            answer_result.history = history
+
+            # 设置LLM输出结果，仅包含本次请求的原始response_text
+            answer_result.llm_output = {"answer": response_text}
+
+            # 设置AnswerResult对象中的prompt属性
+            answer_result.prompt = prompt
+
+            # 生成并返回AnswerResult对象
+            yield answer_result
 
 if __name__ == "__main__":
 

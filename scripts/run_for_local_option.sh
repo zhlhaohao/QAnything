@@ -156,13 +156,16 @@ if [ "$runtime_backend" = "default" ]; then
     else
         echo "The triton server will start on $gpuid1 and $gpuid2 GPUs"
 
+        # 在GPU1上运行本地大模型（子曰LLM）推理服务器
         CUDA_VISIBLE_DEVICES=$gpuid1 nohup /opt/tritonserver/bin/tritonserver --model-store=/model_repos/QAEnsemble_base --http-port=10000 --grpc-port=10001 --metrics-port=10002 --log-verbose=1 > /workspace/qanything_local/logs/debug_logs/llm_tritonserver.log 2>&1 &
+        # 在GPU2上运行embeding和rerank模型推理服务器
         CUDA_VISIBLE_DEVICES=$gpuid2 nohup /opt/tritonserver/bin/tritonserver --model-store=/model_repos/QAEnsemble_embed_rerank --http-port=9000 --grpc-port=9001 --metrics-port=9002 --log-verbose=1 > /workspace/qanything_local/logs/debug_logs/embed_rerank_tritonserver.log 2>&1 &
         update_or_append_to_env "RERANK_PORT" "9001"
         update_or_append_to_env "EMBED_PORT" "9001"
     fi
 
     cd /workspace/qanything_local/qanything_kernel/dependent_server/llm_for_local_serve || exit
+    # 运行本地大模型的中转服务(将RPC转换为http)
     nohup python3 -u llm_server_entrypoint.py --host="0.0.0.0" --port=36001 --model-path="tokenizer_assets" --model-url="0.0.0.0:10001" > /workspace/qanything_local/logs/debug_logs/llm_server_entrypoint.log 2>&1 &
     echo "The llm transfer service is ready! (1/8)"
     echo "大模型中转服务已就绪! (1/8)"

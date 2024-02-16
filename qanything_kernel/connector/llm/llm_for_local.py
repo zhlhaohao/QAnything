@@ -13,7 +13,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-
+# PPP# 网易的子曰LLM的local问答接口,backend=default,url=0.0.0.0:36001 (llm_server_entrypoint.py监听该地址，处理http请求，并转发给triton server进行llm推理，然后返回http response)
 class ZiyueLLM(BaseAnswer, LLM, ABC):
     model_name: str = "ZiyueLLM"
     model: str = "yd_gpt"

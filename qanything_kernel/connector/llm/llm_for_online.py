@@ -8,7 +8,7 @@ from qanything_kernel.connector.llm.base import (BaseAnswer, AnswerResult)
 
 load_dotenv()
 
-
+# PPP# 无用
 class OpenAILLM(BaseAnswer, ABC):
     model: str = "gpt-3.5-turbo"
     token_window: int = 4096

@@ -311,7 +311,7 @@ async def clean_files_by_status(req: request):
             local_doc_qa.milvus_summary.delete_files(kb_id, gray_file_ids)
     return sanic_json({"code": 200, "msg": f"delete {status} files success", "data": gray_file_names})
 
-
+# PPP# 基于文档的问答api接口
 async def local_doc_chat(req: request):
     local_doc_qa: LocalDocQA = req.app.ctx.local_doc_qa
     user_id = safe_get(req, 'user_id')
@@ -352,6 +352,7 @@ async def local_doc_chat(req: request):
 
             async def generate_answer(response):
                 debug_logger.info("start generate...")
+                # get_knowledge_based_answer是生成器函数，不断地生成回答
                 for resp, next_history in local_doc_qa.get_knowledge_based_answer(
                         query=question, milvus_kb=milvus_kb, chat_history=history, streaming=True, rerank=rerank
                 ):
@@ -401,6 +402,7 @@ async def local_doc_chat(req: request):
                         await response.eof()
                     await asyncio.sleep(0.001)
 
+            # ResponseStream是sanic的流式响应对象，以生成器函数（generate_answer）作为参数，每隔一段时间将生成器函数的下一个值返回给客户端,ResponseStream内部实现了__await__函数，使它变成了awaitable（异步生成器类）
             response_stream = ResponseStream(generate_answer, content_type='text/event-stream')
             return response_stream
 

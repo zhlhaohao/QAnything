@@ -28,6 +28,16 @@
       "console": "integratedTerminal",
 			"cwd": "${workspaceFolder}",
       "justMyCode": false
-    },    
+    },
+    {
+      "name": "OpenAI API",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/qanything_kernel/connector/llm/llm_for_openai_api.py",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    },  
+
+
   ]
 }

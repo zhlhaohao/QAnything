@@ -144,6 +144,7 @@ echo "GPU ID: $gpuid1, $gpuid2"
 
 start_time=$(date +%s)  # 记录开始时间
 
+# backend=default表示采用网易自己的大模型
 if [ "$runtime_backend" = "default" ]; then
     echo "Executing default FastTransformer runtime_backend"
     # start llm server
@@ -169,7 +170,8 @@ if [ "$runtime_backend" = "default" ]; then
     nohup python3 -u llm_server_entrypoint.py --host="0.0.0.0" --port=36001 --model-path="tokenizer_assets" --model-url="0.0.0.0:10001" > /workspace/qanything_local/logs/debug_logs/llm_server_entrypoint.log 2>&1 &
     echo "The llm transfer service is ready! (1/8)"
     echo "大模型中转服务已就绪! (1/8)"
-else
+else    # backend= hf/vllm 表示用fastchat加载自己的本地大模型
+    # 运行embed和rerank模型
     echo "The triton server for embedding and reranker will start on $gpuid2 GPUs"
     CUDA_VISIBLE_DEVICES=$gpuid2 nohup /opt/tritonserver/bin/tritonserver --model-store=/model_repos/QAEnsemble_embed_rerank --http-port=9000 --grpc-port=9001 --metrics-port=9002 --log-verbose=1 > /workspace/qanything_local/logs/debug_logs/embed_rerank_tritonserver.log 2>&1 &
     update_or_append_to_env "RERANK_PORT" "9001"
@@ -184,8 +186,10 @@ else
     update_or_append_to_env "LLM_API_SERVE_MODEL" "$LLM_API_SERVE_MODEL"
     update_or_append_to_env "LLM_API_SERVE_CONV_TEMPLATE" "$LLM_API_SERVE_CONV_TEMPLATE"
 
+    # 部署fastchat workers控制器
     mkdir -p /workspace/qanything_local/logs/debug_logs/fastchat_logs && cd /workspace/qanything_local/logs/debug_logs/fastchat_logs
     nohup python3 -m fastchat.serve.controller --host 0.0.0.0 --port 7800 > /workspace/qanything_local/logs/debug_logs/fastchat_logs/fschat_controller_7800.log 2>&1 &
+    # 部署fastchat openai RESTFul api服务
     nohup python3 -m fastchat.serve.openai_api_server --host 0.0.0.0 --port 7802 --controller-address http://0.0.0.0:7800 > /workspace/qanything_local/logs/debug_logs/fastchat_logs/fschat_openai_api_server_7802.log 2>&1 &
 
     gpus=$tensor_parallel
@@ -198,7 +202,8 @@ else
     case $runtime_backend in
     "hf")
         echo "Executing hf runtime_backend"
-        
+
+        # fastchat部署本地LLM模型，用huggingface推理，模型路径在/model_repos/CustomLLM/model_name
         CUDA_VISIBLE_DEVICES=$gpus nohup python3 -m fastchat.serve.model_worker --host 0.0.0.0 --port 7801 \
             --controller-address http://0.0.0.0:7800 --worker-address http://0.0.0.0:7801 \
             --model-path /model_repos/CustomLLM/$LLM_API_SERVE_MODEL --load-8bit \
@@ -208,6 +213,7 @@ else
     "vllm")
         echo "Executing vllm runtime_backend"
 
+        # fastchat部署本地LLM模型，用vllm推理，模型路径在/model_repos/CustomLLM/model_name
         CUDA_VISIBLE_DEVICES=$gpus nohup python3 -m fastchat.serve.vllm_worker --host 0.0.0.0 --port 7801 \
             --controller-address http://0.0.0.0:7800 --worker-address http://0.0.0.0:7801 \
             --model-path /model_repos/CustomLLM/$LLM_API_SERVE_MODEL --trust-remote-code --block-size 32 --tensor-parallel-size $tensor_parallel \

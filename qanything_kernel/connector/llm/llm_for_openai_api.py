@@ -96,10 +96,11 @@ class OpenAILLM(BaseAnswer, ABC):
             return self.num_tokens_from_messages(messages, model="gpt-4-0613")
 
         else:
-            # 对于没有实现的模型，抛出未实现错误
-            raise NotImplementedError(
-                f"""num_tokens_from_messages() is not implemented for model {model}. See https://github.com/openai/openai-python/blob/main/chatml.md for information on how messages are converted to tokens."""
-            )
+            return self.num_tokens_from_messages(messages, model="gpt-3.5-turbo-0613")
+            # # 对于没有实现的模型，抛出未实现错误
+            # raise NotImplementedError(
+            #     f"""num_tokens_from_messages() is not implemented for model {model}. See https://github.com/openai/openai-python/blob/main/chatml.md for information on how messages are converted to tokens."""
+            # )
             
         num_tokens = 0
         # 计算每条消息的token数

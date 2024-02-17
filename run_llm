@@ -1,0 +1,11 @@
+#!/bin/bash
+# 在趋动云上运行定制大模型
+
+nohup python3 -m fastchat.serve.controller --host 0.0.0.0 --port 7800 > /gemini/code/Langchain-Chatchat/debug_logs/fschat_controller.log 2>&1 &
+tail -f /gemini/code/Langchain-Chatchat/debug_logs/fschat_controller.log &
+nohup python3 -m fastchat.serve.openai_api_server --host 0.0.0.0 --port 7802 --controller-address http://0.0.0.0:7800 > /gemini/code/Langchain-Chatchat/debug_logs/fschat_openai_api_server.log 2>&1 &
+tail -f /gemini/code/Langchain-Chatchat/debug_logs/fschat_openai_api_server.log &
+nohup python3 -m fastchat.serve.model_worker --host 0.0.0.0 --port 7801 \
+            --controller-address http://0.0.0.0:7800 --worker-address http://0.0.0.0:7801 \
+            --model-path /gemini/code/Langchain-Chatchat/Qwen-1_8B-Chat-Int4 > /gemini/code/Langchain-Chatchat/debug_logs/fschat_model_worker.log 2>&1 &
+tail -f /gemini/code/Langchain-Chatchat/debug_logs/fschat_model_worker.log &

@@ -1,14 +1,32 @@
-# 此仓库是从QAnything（https://github.com/netease-youdao/QAnything） fork而来，并做出了以下几点调整和改进：
+此仓库是从QAnything（https://github.com/netease-youdao/QAnything） fork而来，并做出了以下几点调整和改进：
 1. 取消了原系统对GPU的要求，现在可以在CPU上进行推理（embeding和rerank模型推理）
 2. 由于取消了GPU，所以不能做LLM本地推理，只能采用cloud的llm服务（chatgpt3.5）
 3. 把前端和后端代码从容器中分离出来，这样前后端可以在宿主机上进行开发、调试（例如通过vscode打断点、单步执行等）
 4. 只支持wsl2环境，因为本人没有linux环境，所以只能在wsl2上进行开发
 
+## 1. wsl2安装nodejs
 
-
-
-## 1. wsl2先安装miniconda,然后创建python 3.10环境，
+```bash
+wget https://nodejs.org/download/release/v18.19.0/node-v18.19.0-linux-x64.tar.gz
+# 创建目录用于存放Node.js
+sudo mkdir -p /usr/local/lib/nodejs
+# 解压Node.js压缩包到指定目录
+sudo tar -zxvf node-v18.19.0-linux-x64.tar.gz -C /usr/local/lib/nodejs
+# 设置环境变量，将Node.js的bin目录加入到PATH中
+ENV PATH="/usr/local/lib/nodejs/node-v18.19.0-linux-x64/bin:${PATH}"
+rm node-v18.19.0-linux-x64.tar.gz
 ```
+
+## 2. wsl2安装miniconda
+```bash
+mkdir -p ~/miniconda3
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
+bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
+~/miniconda3/bin/conda init bash
+```
+
+## 3. miniconda创建python 3.10环境，
+```bash
 conda create -n py310-qany python=3.10
 conda activate py310-qany
 git clone https://github.com/zhlhaohao/QAnything.git
@@ -20,18 +38,22 @@ pip_inst  # 安装必要的库文件
 bash run.sh -c cloud
 ```
 
-## 2. 修改下载下来的模型配置文件: models/embed/config.pbtxt 和 models/rerank/config.pbtxt ,将最后的几行覆盖成下面的内容（目的是改用cpu进行推理，我没有GPU）：
+## 4. 修改下载下来的模型配置文件: models/embed/config.pbtxt 和 models/rerank/config.pbtxt ,将最后的几行覆盖成下面的内容（目的是改用cpu进行推理，我没有GPU）：
 ```
-instance_group [
   {
     name: "embed"
     count: 1
     kind: KIND_CPU
   }
+
+  {
+    name: "rerank"
+    count: 1
+    kind: KIND_CPU
+  }  
 ```
 
-## 3. 编辑wsl2上的 /etc/hosts 文件，增加下面几行（将后端代码移出容器后，要让这些域名还能找得到）：
-
+## 5. wsl2上 sudo vi /etc/hosts，增加下面几行（将后端代码移出容器后，要让这些域名还能找得到）：
 ```
 127.0.0.1       milvus-standalone-local
 127.0.0.1       milvus-etcd-local
@@ -39,17 +61,16 @@ instance_group [
 127.0.0.1       milvus-minio-local
 ```
 
-
-## 5. 以生产方式独立运行后端(全部在容器运行，不能调试，就是qanything原来的模式)
-将docker-compose-windows-prod.yaml内容拷贝到docker-compose-windows.yaml
+## 6. 以生产方式独立运行后端(全部在容器运行，不能调试，就是qanything原来的模式)
+1. 将docker-compose-windows-prod.yaml内容拷贝到docker-compose-windows.yaml
+2. 新开terminal
 ```bash
 run.sh -c cloud
 ```
 
-## 6. 以开发调试方式运行
+## 7. 以开发调试方式运行
   1. 将docker-compose-windows-dev.yaml的内容拷贝到docker-compose-windows.yaml(**这个很重要**)
-
-  2. 开启服务：新开一个terminal，以容器方式运行mysql，向量数据库、embed模型推理、rerank模型推理等 - 需要输入chatgpt的apikey（如果没有在淘宝上购买一个）,服务器选择"local"，如果openai api地址国内无法访问，那么就申请一个cloudflare的代理转发，然后把代理地址覆盖到.env文件的OPENAI_API_BASE项
+  2. 启动容器：新开一个terminal，以容器方式运行mysql，向量数据库、embed模型推理、rerank模型推理等 - 需要输入chatgpt的apikey（如果没有在淘宝上购买一个）,服务器选择"local"，如果openai api地址国内无法访问，那么就申请一个cloudflare的代理转发，然后把代理地址覆盖到.env文件的OPENAI_API_BASE项
   ```bash
   run.sh -c cloud
   ```
@@ -88,8 +109,28 @@ run.sh -c cloud
   ```
 
 
-## 7. 打开页面地址进行问答
+## 8. 打开页面地址进行问答
 http://127.0.0.1:5052/qanything/
+
+
+
+
+
+nohup python3 -m fastchat.serve.controller --host 0.0.0.0 --port 7800 > /gemini/code/Langchain-Chatchat/debug_logs/fschat_controller.log 2>&1 &
+
+tail -f /gemini/code/Langchain-Chatchat/debug_logs/fschat_controller.log &
+
+nohup python3 -m fastchat.serve.openai_api_server --host 0.0.0.0 --port 7802 --controller-address http://0.0.0.0:7800 > /gemini/code/Langchain-Chatchat/debug_logs/fschat_openai_api_server.log 2>&1 &
+
+tail -f /gemini/code/Langchain-Chatchat/debug_logs/fschat_openai_api_server.log &
+
+
+nohup python3 -m fastchat.serve.model_worker --host 0.0.0.0 --port 7801 \
+            --controller-address http://0.0.0.0:7800 --worker-address http://0.0.0.0:7801 \
+            --model-path /gemini/code/Langchain-Chatchat/Qwen-1_8B-Chat-Int4 > /gemini/code/Langchain-Chatchat/debug_logs/fschat_model_worker.log 2>&1 &
+
+tail -f /gemini/code/Langchain-Chatchat/debug_logs/fschat_model_worker.log &
+
 
 
 

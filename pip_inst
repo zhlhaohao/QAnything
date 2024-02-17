@@ -1,3 +1,4 @@
+#!/bin/bash
 PIP_OPTIONS="-i https://pypi.tuna.tsinghua.edu.cn/simple --trusted-host pypi.tuna.tsinghua.edu.cn"
 
 python3 -m pip install $PIP_OPTIONS --upgrade pip && pip install $PIP_OPTIONS --no-cache-dir --extra-index-url https://pypi.ngc.nvidia.com regex==2023.10.3 fire==0.5.0 && \
@@ -8,25 +9,24 @@ python3 -m pip install $PIP_OPTIONS --upgrade pip && pip install $PIP_OPTIONS --
     pip install $PIP_OPTIONS --no-cache-dir onnxruntime-gpu==1.16.3 openai==1.6.1 && \
     pip install $PIP_OPTIONS --no-cache-dir unstructured==0.11.6 unstructured[pptx]==0.11.6 unstructured[md]==0.11.6
 
-
-
-apt-get install -y --no-install-recommends \
-        autoconf \
-        autogen \
-        clangd \
-        git-lfs \
-        libb64-dev \
-        libz-dev \
-        locales-all \
-        mosh \
-        rapidjson-dev \
-        zstd \
-        libgl1-mesa-glx \
-        libmagic-dev \
-        poppler-utils \
-        tesseract-ocr \
-        libxml2-dev \
-        libxslt1-dev && \
-    apt-get clean && \
-    rm -rf /usr/local/cuda-11.8 && \
-    rm -rf /var/lib/apt/lists/*    
+sudo apt-get update && \ 
+sudo apt-get install -y --no-install-recommends \
+    autoconf \
+    autogen \
+    clangd \
+    git-lfs \
+    libb64-dev \
+    libz-dev \
+    locales-all \
+    mosh \
+    rapidjson-dev \
+    zstd \
+    libgl1-mesa-glx \
+    libmagic-dev \
+    poppler-utils \
+    tesseract-ocr \
+    libxml2-dev \
+    libxslt1-dev && \
+sudo apt-get clean && \
+sudo rm -rf /usr/local/cuda-11.8 && \
+sudo rm -rf /var/lib/apt/lists/*    

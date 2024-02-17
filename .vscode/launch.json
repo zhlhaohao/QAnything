@@ -21,7 +21,8 @@
         "online"
 			],
       "env": {
-        "LLM_API_SERVE_PORT":"7802",
+        "LOCAL_LLM_SERVICE_URL": "sy-direct.virtaicloud.com",
+        "LLM_API_SERVE_PORT":"29963",
         "RERANK_PORT":"9001",
         "EMBED_PORT":"9001"
 			},      

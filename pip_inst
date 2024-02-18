@@ -9,7 +9,7 @@ python3 -m pip install $PIP_OPTIONS --upgrade pip && pip install $PIP_OPTIONS --
     pip install $PIP_OPTIONS --no-cache-dir onnxruntime-gpu==1.16.3 openai==1.6.1 && \
     pip install $PIP_OPTIONS --no-cache-dir unstructured==0.11.6 unstructured[pptx]==0.11.6 unstructured[md]==0.11.6
 
-sudo apt-get update && \ 
+sudo apt-get update && sudo apt update && \ 
 sudo apt-get install -y --no-install-recommends \
     autoconf \
     autogen \
@@ -26,7 +26,10 @@ sudo apt-get install -y --no-install-recommends \
     poppler-utils \
     tesseract-ocr \
     libxml2-dev \
-    libxslt1-dev && \
+    libxslt1-dev \
+    unzip \
+    jq \
+    bc && \
 sudo apt-get clean && \
 sudo rm -rf /usr/local/cuda-11.8 && \
 sudo rm -rf /var/lib/apt/lists/*    

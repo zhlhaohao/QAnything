@@ -78,7 +78,8 @@ run.sh -c cloud
 
   3. 新开一个terminal,运行前端代码
   ```bash
-  cd front_end && npm install && npm run build && npm run serve
+  cd front_end 
+  npm install --registry=https://registry.npmmirror.com && npm run build && npm run serve
   ```
 
   4. vscode以调试模式运行后端代码，首先.vscode/launch.json增加一个调试项目，然后点击“start debugging”：

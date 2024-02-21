@@ -15,7 +15,7 @@ WEIGHT2NPDTYPE = {
     "fp16": np.float16,
 }
 
-
+# PPP# 文本嵌入处理类
 class EmbeddingClient:
     DEFAULT_MAX_RESP_WAIT_S = 120
     embed_version = "local_v0.0.1_20230525_6d4019f1559aef84abc2ab8257e1ad4c"
@@ -28,18 +28,20 @@ class EmbeddingClient:
         tokenizer_path: str,
         resp_wait_s: Optional[float] = None,
     ):
-        self._server_url = server_url
-        self._model_name = model_name
+        self._server_url = server_url   # triton server url
+        self._model_name = model_name   # embedding 模型名字
         self._model_version = model_version
         self._response_wait_t = self.DEFAULT_MAX_RESP_WAIT_S if resp_wait_s is None else resp_wait_s
-        self._tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
+        self._tokenizer = AutoTokenizer.from_pretrained(tokenizer_path) # 实例化tokenizer
 
     def get_embedding(self, sentences, max_length=512):
         # Setting up client
     
+        # 对文本进行tokenizer,inputs_data是输出结果
         inputs_data = self._tokenizer(sentences, padding=True, truncation=True, max_length=max_length, return_tensors='np')
         inputs_data = {k: v for k, v in inputs_data.items()}
     
+        # PPP### triton server客户端用于文本嵌入推理
         client = InferenceServerClient(url=self._server_url)
         model_config = client.get_model_config(self._model_name, self._model_version)
         model_metadata = client.get_model_metadata(self._model_name, self._model_version)

@@ -12,15 +12,17 @@ embedding_client = EmbeddingClient(
     resp_wait_s=120,
     tokenizer_path='qanything_kernel/connector/embedding/embedding_model_0630')
 
-# PPP# 文本嵌入代码
+# PPP# 文本嵌入代码,在这里修改代码摆脱triton server
 class YouDaoLocalEmbeddings:
     def __init__(self):
         pass
 
+    # 调用推理服务器进行queries条文本的嵌入推理    
     def _get_embedding(self, queries):
         embeddings = embedding_client.get_embedding(queries, max_length=LOCAL_EMBED_MAX_LENGTH)
         return embeddings
 
+    # PPP## 多线程并发进行批量文本嵌入（一个线程处理batch_size条文本,N个线程并发）
     def _get_len_safe_embeddings(self, texts: List[str]) -> List[List[float]]:
         all_embeddings = []
         batch_size = LOCAL_EMBED_BATCH

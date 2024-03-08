@@ -20,6 +20,8 @@ class YouDaoLocalEmbeddings:
     # 调用推理服务器进行queries条文本的嵌入推理    
     def _get_embedding(self, queries):
         embeddings = embedding_client.get_embedding(queries, max_length=LOCAL_EMBED_MAX_LENGTH)
+        # print(f"embeddings...{queries}")
+        # print(embeddings)
         return embeddings
 
     # PPP## 多线程并发进行批量文本嵌入（一个线程处理batch_size条文本,N个线程并发）

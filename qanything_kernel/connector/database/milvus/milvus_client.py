@@ -82,6 +82,7 @@ class MilvusClient:
 
     def init(self):
         try:
+            # PPP## 连接Milvus数据库，这里在后台重启后经常容易超时失败
             connections.connect(host=self.host, port=self.port, user=self.user,
                                 password=self.password, db_name=self.db_name)  # timeout=3 [cannot set]
             if utility.has_collection(self.user_id):

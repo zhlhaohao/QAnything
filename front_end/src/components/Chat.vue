@@ -137,6 +137,8 @@ import html2canvas from 'html2canvas';
 import { userId } from '@/services/urlConfig';
 import { getLanguage } from '@/language/index';
 
+// PPP ESS(Server-Sent Events, SSE)问答页面组件
+
 const common = getLanguage().common;
 
 const typewriter = new Typewriter((str: string) => {
@@ -267,13 +269,17 @@ const send = () => {
       streaming: true,
     }),
     signal: ctrl.signal,
+    // 在成功连接到服务器并开始接收事件流时触发。
     onopen(e: any) {
       console.log('open');
       if (e.ok && e.headers.get('content-type') === 'text/event-stream') {
         console.log("everything's good");
         // addAnswer(question.value);
         // question.value = '';
+
+        // QA_List.value增加一条AI的回答记录（注意刚开始回答内容是空的）
         addAnswer(q);
+        // 通过定时器 - 开始消费typewriter里面的数据到 QA_List.value[QA_List.value.length - 1].answer
         typewriter.start();
       } else if (e.headers.get('content-type') === 'application/json') {
         showLoading.value = false;
@@ -288,12 +294,14 @@ const send = () => {
           }); // 将响应解析为 JSON
       }
     },
+    // 当收到一个新的数据块时触发，e.data 包含了服务器推送的数据。
     onmessage(msg: { data: string }) {
       console.log('message');
       const res: any = JSON.parse(msg.data);
       console.log(res);
       if (res?.code == 200 && res?.response) {
         // QA_List.value[QA_List.value.length - 1].answer += res.result.response;
+        // 将回答内容添加到 typewriter
         typewriter.add(res?.response.replaceAll('\n', '<br/>'));
         scrollBottom();
       }
@@ -317,6 +325,7 @@ const send = () => {
         scrollBottom();
       });
     },
+    // 在发生错误或者连接断开时触发。
     onerror(err: any) {
       console.log('error');
       typewriter?.done();

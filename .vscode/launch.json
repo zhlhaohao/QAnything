@@ -9,11 +9,15 @@
       "type": "debugpy",
       "request": "launch",
       "program": "${file}",
+      "env": {
+        "HTTP_PROXY": "http://192.168.50.150:7890",
+        "HTTPS_PROXY": "http://192.168.50.150:7890"
+			},         
       "console": "integratedTerminal"
     },
     {
       "name": "run api",
-      "type": "python",
+      "type": "debugpy",
       "request": "launch",
       "program": "${workspaceFolder}/qanything_kernel/qanything_server/sanic_api.py",
 			"args": [
@@ -32,7 +36,7 @@
     },
     {
       "name": "OpenAI API",
-      "type": "python",
+      "type": "debugpy",
       "request": "launch",
       "program": "${workspaceFolder}/qanything_kernel/connector/llm/llm_for_openai_api.py",
       "cwd": "${workspaceFolder}",
